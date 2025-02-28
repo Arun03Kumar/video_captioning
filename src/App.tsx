@@ -123,7 +123,7 @@ function App() {
                 </div>
               )}
               {currentCaption && !videoError && (
-                <div className="absolute bottom-6 left-4 right-4 bg-black bg-opacity-60 text-white text-lg text-center py-2 rounded">
+                <div className="absolute bottom-6 left-4 right-4 bg-black bg-opacity-20 text-white text-lg text-center py-2 rounded">
                   {currentCaption}
                 </div>
               )}
