@@ -8,6 +8,7 @@ function App() {
   const [step, setStep] = useState(1);
   const [videoUrl, setVideoUrl] = useState("");
   const [videoError, setVideoError] = useState("");
+  const [videoDuration, setVideoDuration] = useState(0);
   const [captions, setCaptions] = useState([]);
   const [currentCaption, setCurrentCaption] = useState("");
   const [newCaption, setNewCaption] = useState({
@@ -46,7 +47,9 @@ function App() {
     const endTime = parseFloat(newCaption.end);
 
     if (isNaN(startTime) || isNaN(endTime)) {
-      setValidationError("Please enter valid numeric values for start and end times.");
+      setValidationError(
+        "Please enter valid numeric values for start and end times."
+      );
       return;
     }
     if (startTime < 0 || endTime < 0) {
@@ -59,6 +62,30 @@ function App() {
     }
     if (!newCaption.text.trim()) {
       setValidationError("Please enter caption text.");
+      return;
+    }
+    // Validate that caption times are within video duration (if available)
+    if (
+      videoDuration > 0 &&
+      (startTime >= videoDuration || endTime > videoDuration)
+    ) {
+      setValidationError(
+        `Caption times must be within the video duration (max ${videoDuration.toFixed(
+          2
+        )} sec).`
+      );
+      return;
+    }
+    // Validate no overlapping caption exists (optional)
+    const isOverlapping = captions.some((caption) => {
+      const existingStart = parseFloat(caption.start);
+      const existingEnd = parseFloat(caption.end);
+      return startTime < existingEnd && endTime > existingStart;
+    });
+    if (isOverlapping) {
+      setValidationError(
+        "Caption time range overlaps with an existing caption."
+      );
       return;
     }
 
@@ -115,6 +142,7 @@ function App() {
                 height="100%"
                 onProgress={handleProgress}
                 onError={handleError}
+                onDuration={(duration) => setVideoDuration(duration)}
                 style={{ position: "absolute", top: 0, left: 0 }}
               />
               {videoError && (
@@ -185,16 +213,16 @@ function App() {
                         <span>{caption.text}</span>
                       </div>
                       <div className="flex gap-2">
-                        <Button 
-                          onClick={() => handleEditCaption(index)} 
+                        <Button
+                          onClick={() => handleEditCaption(index)}
                           size="sm"
                           className="flex items-center justify-center text-xs px-2 py-1 cursor-pointer"
                         >
                           Edit
                         </Button>
-                        <Button 
-                          onClick={() => handleDeleteCaption(index)} 
-                          size="sm" 
+                        <Button
+                          onClick={() => handleDeleteCaption(index)}
+                          size="sm"
                           variant="destructive"
                           className="flex items-center justify-center text-xs px-2 py-1 cursor-pointer"
                         >
